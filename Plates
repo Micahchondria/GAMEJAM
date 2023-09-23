@@ -25,6 +25,11 @@ func _physics_process(delta):
         # Check if the sprite is below the screen, then mark it for removal
         if sprite.position.y > get_viewport_rect().size.y:
             to_remove.append(i)
+        
+        # Check for collisions with a 2D collision shape (e.g., ground)
+        var collision = sprite.move_and_collide(velocity * delta)
+        if collision:
+            velocity = Vector2()  # Stop the sprite when it collides
     
     # Remove marked sprites from the list and velocities
     for i in to_remove:
