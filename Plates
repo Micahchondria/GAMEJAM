@@ -23,11 +23,14 @@ func _physics_process(delta):
         # Check if the sprite is below the screen, then mark it for removal
         if sprite.position.y > get_viewport_rect().size.y:
             to_remove.append(i)
+        
+        # Check for collisions with the ground (assuming you have a CollisionShape2D for the ground)
+        if sprite.is_colliding():
+            velocity = Vector2()  # Stop the sprite when it collides with the ground
     
-    # Remove marked sprites from the list and velocities
+    # Remove marked sprites from the list
     for i in to_remove.reversed():
         sprites[i].queue_free()
-        velocities.remove(i)
 
 func spawnSprite(position, velocity):
     var newSprite = Sprite2D.new()
@@ -38,3 +41,10 @@ func spawnSprite(position, velocity):
 
     sprites.append(newSprite)
     velocities.append(velocity)  # Store the velocity for this sprite
+
+func _on_CollisionShape2D_area_entered(area):
+    # Check if the colliding area is a sprite, and if so, stop its velocity
+    if area is Sprite2D:
+        var index = sprites.find(area)
+        if index != -1:
+            velocities[index] = Vector2()  # Stop the sprite's velocity
