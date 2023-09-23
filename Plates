@@ -1,7 +1,6 @@
 extends Node2D
 
 var sprites = []
-var velocities = []  # Stores the velocities for each sprite
 var spawnAreaHeight = 200
 var gravity = 500.0  # Adjust this value to control the strength of gravity
 
@@ -10,37 +9,37 @@ func _ready():
 
 func _physics_process(delta):
     var to_remove = []
-    
-    # Iterate in reverse order to avoid issues with array modification
-    for i in range(sprites.size() - 1, -1, -1):
+    for i in range(sprites.size()):
         var sprite = sprites[i]
-        var velocity = velocities[i]  # Get the velocity for this sprite
         
         # Apply gravity by adjusting the Y velocity
-        velocity.y += gravity * delta
+        sprite.velocity.y += gravity * delta
         
         # Update the sprite's position based on velocity
-        sprite.position += velocity * delta
+        sprite.position += sprite.velocity * delta
         
         # Check if the sprite is below the screen, then mark it for removal
         if sprite.position.y > get_viewport_rect().size.y:
             to_remove.append(i)
         
-        # Check for collisions with a 2D collision shape (e.g., ground)
-        var collision = sprite.move_and_collide(velocity * delta)
-        if collision:
-            velocity = Vector2()  # Stop the sprite when it collides
+        # Check for collisions with the ground
+        if sprite.is_colliding_with_ground:
+            sprite.velocity = Vector2()  # Stop the sprite when it collides with the ground
     
-    # Remove marked sprites from the list and velocities
-    for i in to_remove:
+    # Remove marked sprites from the list
+    for i in to_remove.reversed():
         sprites[i].queue_free()
-        velocities.remove(i)
 
 func spawnSprite(position, velocity):
-    var newSprite = Sprite2D.new()
-    newSprite.texture = preload("res://path_to_your_texture.png")
-    add_child(newSprite)
+    var kinematicBody = KinematicBody2D.new()
+    add_child(kinematicBody)
+    kinematicBody.position = position
 
-    newSprite.position = position
-    sprites.append(newSprite)
-    velocities.append(velocity)  # Store the velocity for this sprite
+    var sprite = Sprite2D.new()
+    sprite.texture = preload("res://path_to_your_texture.png")
+    kinematicBody.add_child(sprite)
+
+    kinematicBody.velocity = velocity  # Store the velocity for this sprite
+    kinematicBody.is_colliding_with_ground = false
+
+    sprites.append(kinematicBody)
