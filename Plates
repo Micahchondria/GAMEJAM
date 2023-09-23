@@ -1,7 +1,6 @@
 extends Node2D
 
 var sprites = []
-var velocities = []  # Stores the velocities for each sprite
 var spawnAreaHeight = 200
 var gravity = 500.0  # Adjust this value to control the strength of gravity
 
@@ -12,21 +11,21 @@ func _physics_process(delta):
     var to_remove = []
     for i in range(sprites.size()):
         var sprite = sprites[i]
-        var velocity = velocities[i]  # Get the velocity for this sprite
         
-        # Apply gravity by adjusting the Y velocity
-        velocity.y += gravity * delta
+        # Apply gravity by adjusting the Y position
+        sprite.position.y += gravity * delta
         
-        # Update the sprite's position based on velocity
-        sprite.position += velocity * delta
+        # Check for collisions with the ground (assuming you have a CollisionShape2D for the ground)
+        var collision = sprite_is_colliding(sprite)
+        
+        if collision:
+            # Stop the sprite when it collides with the ground
+            sprite.position.y = collision.position.y - collision.shape.extents.y
+            sprite.velocity = Vector2(0, 0)
         
         # Check if the sprite is below the screen, then mark it for removal
         if sprite.position.y > get_viewport_rect().size.y:
             to_remove.append(i)
-        
-        # Check for collisions with the ground (assuming you have a CollisionShape2D for the ground)
-        if sprite.is_colliding():
-            velocity = Vector2()  # Stop the sprite when it collides with the ground
     
     # Remove marked sprites from the list
     for i in to_remove.reversed():
@@ -38,13 +37,14 @@ func spawnSprite(position, velocity):
     add_child(newSprite)
 
     newSprite.position = position
+    newSprite.velocity = velocity
 
     sprites.append(newSprite)
-    velocities.append(velocity)  # Store the velocity for this sprite
 
-func _on_CollisionShape2D_area_entered(area):
-    # Check if the colliding area is a sprite, and if so, stop its velocity
-    if area is Sprite2D:
-        var index = sprites.find(area)
-        if index != -1:
-            velocities[index] = Vector2()  # Stop the sprite's velocity
+func sprite_is_colliding(sprite):
+    # Check for collisions with the ground (assuming you have a CollisionShape2D for the ground)
+    var ground = $Ground  # Replace 'Ground' with the name of your ground/hitbox node
+    if ground.is_colliding(sprite.position):
+        return ground
+    
+    return null
