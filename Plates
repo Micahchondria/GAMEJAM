@@ -1,6 +1,7 @@
 extends Node2D
 
 var sprites = []
+var velocities = []  # Stores the velocities for each sprite
 var spawnAreaHeight = 200
 var gravity = 500.0  # Adjust this value to control the strength of gravity
 
@@ -11,20 +12,22 @@ func _physics_process(delta):
     var to_remove = []
     for i in range(sprites.size()):
         var sprite = sprites[i]
+        var velocity = velocities[i]  # Get the velocity for this sprite
         
         # Apply gravity by adjusting the Y velocity
-        sprite.velocity.y += gravity * delta
+        velocity.y += gravity * delta
         
         # Update the sprite's position based on velocity
-        sprite.position += sprite.velocity * delta
+        sprite.position += velocity * delta
         
         # Check if the sprite is below the screen, then mark it for removal
         if sprite.position.y > get_viewport_rect().size.y:
             to_remove.append(i)
     
-    # Remove marked sprites from the list
+    # Remove marked sprites from the list and velocities
     for i in to_remove.reversed():
         sprites[i].queue_free()
+        velocities.remove(i)
 
 func spawnSprite(position, velocity):
     var newSprite = Sprite2D.new()
@@ -32,13 +35,6 @@ func spawnSprite(position, velocity):
     add_child(newSprite)
 
     newSprite.position = position
-    newSprite.velocity = velocity
 
     sprites.append(newSprite)
-
-# Connect this function to your ground or collision shape's 'body_entered' signal
-func _on_CollisionArea2D_body_entered(body):
-    for sprite in sprites:
-        # When a sprite collides with the ground, stop its velocity
-        if sprite.position.y > body.position.y:
-            sprite.velocity = Vector2(0, 0)
+    velocities.append(velocity)  # Store the velocity for this sprite
