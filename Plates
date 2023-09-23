@@ -1,8 +1,14 @@
 extends Node2D
 
-var sprites = []
-var spawnAreaHeight = 200
-var gravity = 500.0  # Adjust this value to control the strength of gravity
+class FallingSprite:
+    var sprite: Sprite
+    var velocity: Vector2
+
+    func _init(sprite_texture: Texture, position: Vector2, velocity: Vector2):
+        sprite = Sprite.new()
+        sprite.texture = sprite_texture
+        sprite.position = position
+        velocity = velocity
 
 func _ready():
     spawnSprite(Vector2(100, 100), Vector2(0, 0))
@@ -10,28 +16,26 @@ func _ready():
 func _physics_process(delta):
     var to_remove = []
     for i in range(sprites.size()):
-        var sprite = sprites[i]
+        var falling_sprite = sprites[i]
         
         # Apply gravity by adjusting the Y velocity
-        sprite.velocity.y += gravity * delta
+        falling_sprite.velocity.y += gravity * delta
         
         # Update the sprite's position based on velocity
-        sprite.position += sprite.velocity * delta
+        falling_sprite.sprite.position += falling_sprite.velocity * delta
         
         # Check if the sprite is below the screen, then mark it for removal
-        if sprite.position.y > get_viewport_rect().size.y:
+        if falling_sprite.sprite.position.y > get_viewport_rect().size.y:
             to_remove.append(i)
     
     # Remove marked sprites from the list
     for i in to_remove.reversed():
-        sprites[i].queue_free()
+        sprites[i].sprite.queue_free()
 
 func spawnSprite(position, velocity):
-    var newSprite = Sprite.new()
-    newSprite.texture = preload("res://path_to_your_texture.png")
-    add_child(newSprite)
-
-    newSprite.position = position
-    newSprite.velocity = velocity
-
+    var newSprite = FallingSprite($SpriteTexture, position, velocity)
     sprites.append(newSprite)
+
+var sprites: Array = []
+var spawnAreaHeight = 200
+var gravity = 500.0  # Adjust this value to control the strength of gravity
