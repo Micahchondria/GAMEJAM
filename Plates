@@ -10,23 +10,23 @@ func _ready():
 func _physics_process(delta):
     var to_remove = []
     for i in range(sprites.size()):
-        var sprite = sprites[i]
+        var kinematicBody = sprites[i]
         
         # Apply gravity by adjusting the Y velocity
-        sprite.velocity.y += gravity * delta
+        kinematicBody.velocity.y += gravity * delta
         
-        # Update the sprite's position based on velocity
-        sprite.position += sprite.velocity * delta
+        # Update the kinematic body's position based on velocity
+        kinematicBody.move_and_slide(kinematicBody.velocity)
         
-        # Check if the sprite is below the screen, then mark it for removal
-        if sprite.position.y > get_viewport_rect().size.y:
+        # Check if the kinematic body is below the screen, then mark it for removal
+        if kinematicBody.position.y > get_viewport_rect().size.y:
             to_remove.append(i)
         
         # Check for collisions with the ground
-        if sprite.is_colliding_with_ground:
-            sprite.velocity = Vector2()  # Stop the sprite when it collides with the ground
+        if kinematicBody.is_colliding():
+            kinematicBody.velocity = Vector2()  # Stop the kinematic body when it collides with the ground
     
-    # Remove marked sprites from the list
+    # Remove marked kinematic bodies from the list
     for i in to_remove.reversed():
         sprites[i].queue_free()
 
@@ -34,12 +34,16 @@ func spawnSprite(position, velocity):
     var kinematicBody = KinematicBody2D.new()
     add_child(kinematicBody)
     kinematicBody.position = position
+    
+    # Create a CollisionShape2D to represent the sprite's collision
+    var collisionShape = CollisionShape2D.new()
+    var shape = RectangleShape2D.new()
+    shape.extents = Vector2(16, 16)  # Adjust the extents as needed
+    collisionShape.shape = shape
+    kinematicBody.add_child(collisionShape)
 
-    var sprite = Sprite2D.new()
-    sprite.texture = preload("res://path_to_your_texture.png")
-    kinematicBody.add_child(sprite)
-
-    kinematicBody.velocity = velocity  # Store the velocity for this sprite
-    kinematicBody.is_colliding_with_ground = false
+    # Store the velocity for this kinematic body
+    kinematicBody.velocity = velocity
+    kinematicBody.is_colliding = false
 
     sprites.append(kinematicBody)
