@@ -1,0 +1,37 @@
+extends Node2D
+
+var sprites = []
+var spawnAreaHeight = 200
+var gravity = 500.0  # Adjust this value to control the strength of gravity
+
+func _ready():
+    spawnSprite(Vector2(100, 100), Vector2(0, 0))
+
+func _physics_process(delta):
+    var to_remove = []
+    for i in range(sprites.size()):
+        var sprite = sprites[i]
+        
+        # Apply gravity by adjusting the Y velocity
+        sprite.velocity.y += gravity * delta
+        
+        # Update the sprite's position based on velocity
+        sprite.position += sprite.velocity * delta
+        
+        # Check if the sprite is below the screen, then mark it for removal
+        if sprite.position.y > get_viewport_rect().size.y:
+            to_remove.append(i)
+    
+    # Remove marked sprites from the list
+    for i in to_remove.reversed():
+        sprites[i].queue_free()
+
+func spawnSprite(position, velocity):
+    var newSprite = Sprite.new()
+    newSprite.texture = preload("res://path_to_your_texture.png")
+    add_child(newSprite)
+
+    newSprite.position = position
+    newSprite.velocity = velocity
+
+    sprites.append(newSprite)
